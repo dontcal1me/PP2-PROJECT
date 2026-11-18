@@ -3,3 +3,4 @@ print("윤종하 꺼져")
 
 print("개승식")
 print("추민경 나가")
+print("윤종하")
