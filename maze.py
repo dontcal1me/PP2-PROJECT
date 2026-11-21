@@ -61,6 +61,7 @@ class Maze:
     def toggle_wall(self, pos):
         """벽이면 길로, 길이면 벽으로 바꾼다. 출발점, 도착점, 테두리는 바꾸지 않는다.
         바꿨으면 True, 바꾸지 않았으면 False 반환"""
+        pos = tuple(pos)
         if not self.in_range(pos) or self.is_border(pos):
             return False
         if pos == self.start or pos == self.goal:
