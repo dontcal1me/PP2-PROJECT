@@ -1,8 +1,18 @@
+
+
 """길찾기 알고리즘: BFS(너비 우선), DFS(깊이 우선) 탐색"""
 import time
 from collections import deque
 
 
+# ===== [AI 사용] =====
+# AI 종류   : Claude (Anthropic)
+# 사용 목적 : README 5.1장 명세에 맞춘 SearchResult, BFSFinder, DFSFinder 구현
+# 프롬프트  : "리드미 파일을 읽고 finder 파일을 작성해줘"
+# 사용자    : 윤종하
+# 날짜      : 2026-11-21
+# 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
+# =====================
 class SearchResult:
     """탐색 한 번의 결과를 담는 클래스"""
 
@@ -105,6 +115,7 @@ class DFSFinder(PathFinder):
 
         path = self.build_path(parent, goal) if found else []
         return SearchResult(self.name, visit_order, path, elapsed_ms)
+# ===== [AI 사용 끝] =====
 
 
 if __name__ == "__main__":
