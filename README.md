@@ -66,7 +66,8 @@ python main.py
 | 윤종하 (팀장) | 메인 창과 전체 연결, BFS/DFS 탐색, 결과 비교, 저장소 관리, 모든 PR 검토 | `main.py`, `config.py`, `gui/app.py`, `finder.py` | `feature/finder`, `feature/app` |
 | 이승식 | 미로 데이터, 미로 생성 | `maze.py`, `generator.py` | `feature/maze`, `feature/generator` |
 | 추민경 | 미로 그리기와 애니메이션, 마우스 편집, 버튼과 입력 패널 | `gui/maze_canvas.py`, `gui/control_panel.py` | `feature/canvas`, `feature/panel` |
-| 류지언 | 미로 저장/불러오기, 실행 기록, 기록 조회 창, 통계 그래프 | `file_manager.py`, `gui/record_window.py`, `stats.py` | `feature/file`, `feature/stats` |
+| 류지언 | 발표 자료(PPT) 제작, README 작성·관리, 화면 캡처 정리(`docs/`) | `docs/`, `README.md` | `feature/docs` |
+| 윤종하 (류지언 코딩 대행) | 미로 저장/불러오기, 실행 기록, 기록 조회 창, 통계 그래프 | `file_manager.py`, `gui/record_window.py`, `stats.py` | `feature/file`, `feature/stats` |
 
 **자기 담당 파일만 수정합니다.** 다른 사람 파일을 고쳐야 하면 먼저 단톡방에 말하고, 그 사람이 고치거나 허락을 받은 뒤 고칩니다.
 
@@ -74,11 +75,11 @@ python main.py
 
 | 주차 | 팀장 (윤종하) | 이승식 | 추민경 | 류지언 |
 |---|---|---|---|---|
-| 11주차 | 저장소 생성, 뼈대 코드와 `config.py` 업로드 | 개발 환경 준비, 5.2장 읽기 | 개발 환경 준비, 5.3장 읽기 | 개발 환경 준비, 5.4장 읽기 |
-| 12주차 전반 | `finder.py` 완성 | **`maze.py` 완성 (가장 먼저)** | 미로 그리기 `draw_maze()` | `save_maze()`, `load_maze()` |
-| 12주차 후반 | `app.py` 기본 창 | `generator.py` 완성 | 마우스 편집, 조작 패널 | `append_record()`, `load_records()` |
-| 13주차 | 전체 연결, 중간 발표 | 버그 수정, 다른 팀원 테스트 돕기 | `animate()` 애니메이션 | 기록 조회 창 |
-| 14주차 | 통합 테스트, 최종 발표 | 통합 테스트 | 통합 테스트 | `stats.py` 그래프, 통합 테스트 |
+| 11주차 | 저장소 생성, 뼈대 코드와 `config.py` 업로드 | 개발 환경 준비, 5.2장 읽기 | 개발 환경 준비, 5.3장 읽기 | 개발 환경 준비, 발표 자료 구성 계획 |
+| 12주차 전반 | `finder.py` 완성, `save_maze()`, `load_maze()` (류지언 코딩 대행) | **`maze.py` 완성 (가장 먼저)** | 미로 그리기 `draw_maze()` | PPT 뼈대(요구분석, 역할분담), README 정리 |
+| 12주차 후반 | `app.py` 기본 창, `append_record()`, `load_records()` | `generator.py` 완성 | 마우스 편집, 조작 패널 | PPT 파일 설계, GUI 설계 장 작성 |
+| 13주차 | 전체 연결, 기록 조회 창, 중간 발표 | 버그 수정, 다른 팀원 테스트 돕기 | `animate()` 애니메이션 | 중간 발표 PPT 완성, 화면 캡처 정리 |
+| 14주차 | `stats.py` 그래프, 통합 테스트, 최종 발표 | 통합 테스트 | 통합 테스트 | 결과 발표 PPT, 소감, README 최종 정리 |
 
 `maze.py`는 다른 모든 파일이 쓰기 때문에 **이승식이 12주차 초반에 가장 먼저** 올려 주어야 합니다. `neighbors()`, `is_wall()`, `to_dict()`, `from_dict()`만 먼저 완성돼도 다른 팀원이 작업을 시작할 수 있습니다.
 
@@ -554,7 +555,10 @@ if __name__ == "__main__":
 
 ---
 
-### 5.4 류지언: `file_manager.py`, `gui/record_window.py`, `stats.py`
+### 5.4 파일 저장·기록·통계: `file_manager.py`, `gui/record_window.py`, `stats.py`
+
+> 원래 류지언 담당이었으나, 류지언이 PPT 제작과 README 작성을 맡게 되어 **윤종하가 코딩을 대행**합니다. 명세(이름, 반환값)는 그대로입니다.
+> 현재 상태: `save_maze()`, `load_maze()`, `list_mazes()` 구현 완료 (`feature/file` 브랜치). 나머지는 위 일정표대로 진행합니다.
 
 #### file_manager.py
 
@@ -665,14 +669,14 @@ maze_project/
 ├── maze.py                 # Maze: 미로 데이터                  (이승식)
 ├── generator.py            # MazeGenerator: DFS 미로 생성       (이승식)
 ├── finder.py               # SearchResult, BFSFinder, DFSFinder (윤종하)
-├── file_manager.py         # FileManager: json, csv             (류지언)
-├── stats.py                # StatsViewer: matplotlib 그래프     (류지언)
+├── file_manager.py         # FileManager: json, csv             (윤종하)
+├── stats.py                # StatsViewer: matplotlib 그래프     (윤종하)
 ├── gui/
 │   ├── __init__.py         # 빈 파일
 │   ├── app.py              # MazeApp: 메인 창, 전체 연결        (윤종하)
 │   ├── maze_canvas.py      # MazeCanvas: 그리기, 편집, 애니메이션 (추민경)
 │   ├── control_panel.py    # ControlPanel: 버튼, 입력           (추민경)
-│   └── record_window.py    # RecordWindow: 기록 조회 창         (류지언)
+│   └── record_window.py    # RecordWindow: 기록 조회 창         (윤종하)
 ├── data/
 │   ├── mazes/              # 저장된 미로 (*.json)
 │   └── records.csv         # 실행 기록
@@ -693,14 +697,14 @@ flowchart TD
     subgraph L1 [GUI 계층]
         app --> canvas[gui/maze_canvas.py<br/>MazeCanvas<br/>추민경]
         app --> panel[gui/control_panel.py<br/>ControlPanel<br/>추민경]
-        app --> record[gui/record_window.py<br/>RecordWindow<br/>류지언]
+        app --> record[gui/record_window.py<br/>RecordWindow<br/>윤종하]
     end
 
     subgraph L2 [로직 계층]
         gen[generator.py<br/>MazeGenerator<br/>이승식]
         finder[finder.py<br/>BFSFinder / DFSFinder<br/>윤종하]
-        fm[file_manager.py<br/>FileManager<br/>류지언]
-        stats[stats.py<br/>StatsViewer<br/>류지언]
+        fm[file_manager.py<br/>FileManager<br/>윤종하]
+        stats[stats.py<br/>StatsViewer<br/>윤종하]
     end
 
     subgraph L3 [데이터 계층]
@@ -728,7 +732,7 @@ sequenceDiagram
     participant A as MazeApp (윤종하)
     participant F as BFSFinder (윤종하)
     participant C as MazeCanvas (추민경)
-    participant M as FileManager (류지언)
+    participant M as FileManager (윤종하)
 
     U->>P: [BFS 탐색] 클릭
     P->>A: callbacks["search"]("BFS")
@@ -856,14 +860,14 @@ def generate(self, rows, cols, seed=None):
 
 | 요구 기술 | 사용하는 곳 | 담당 |
 |---|---|---|
-| GUI (tkinter) | Canvas 미로, 조작 패널, 기록 창, `after()` 애니메이션 | 추민경, 류지언, 윤종하 |
-| 파일 구조 | 미로 `json`, 실행 기록 `csv` | 류지언 |
+| GUI (tkinter) | Canvas 미로, 조작 패널, 기록 창, `after()` 애니메이션 | 추민경, 윤종하 |
+| 파일 구조 | 미로 `json`, 실행 기록 `csv` | 윤종하 |
 | 객체지향 (Class) | `Maze`, `MazeGenerator`, `PathFinder` 상속 `BFSFinder`/`DFSFinder`, `FileManager`, GUI 클래스들 | 전원 |
 | list | 미로 격자, 방문 순서, 경로, DFS 스택 | 이승식, 윤종하 |
 | tuple | 좌표 `(row, col)`, 이동 방향 | 전원 |
 | set | 방문한 칸 `visited` | 윤종하 |
-| dict | 경로 복원용 `parent`, json 데이터, callbacks | 윤종하, 류지언, 추민경 |
-| 전문 모듈 | `matplotlib` 통계 그래프 | 류지언 |
+| dict | 경로 복원용 `parent`, json 데이터, callbacks | 윤종하, 추민경 |
+| 전문 모듈 | `matplotlib` 통계 그래프 | 윤종하 |
 
 ---
 
@@ -874,8 +878,8 @@ def generate(self, rows, cols, seed=None):
 - [ ] BFS, DFS 탐색과 결과 (윤종하)
 - [ ] 미로 그리기, 마우스 편집, 애니메이션 (추민경)
 - [ ] 조작 패널과 결과 표시 (추민경)
-- [ ] 미로 저장/불러오기, 기록 저장 (류지언)
-- [ ] 기록 조회 창, 비교 그래프 (류지언)
+- [ ] 미로 저장/불러오기, 기록 저장 (윤종하)
+- [ ] 기록 조회 창, 비교 그래프 (윤종하)
 - [ ] 전체 연결 (윤종하)
 
 ### 과제 요건
@@ -884,7 +888,7 @@ def generate(self, rows, cols, seed=None):
 - [ ] 모든 팀원이 BFS와 DFS의 차이를 말로 설명할 수 있음
 - [ ] 자기 담당 코드를 그 자리에서 수정할 수 있음
 
-### 발표 자료
+### 발표 자료 (담당: 류지언)
 - [ ] 12~13주차: 요구분석, 파일 설계, GUI 설계, 소스코드 파일 목록, 형상관리, 역할분담
 - [ ] 14주차: 결과 발표 PPT, 시연, 소감
 - [ ] 중간 결과가 나올 때마다 화면을 캡처해 `docs/`에 모아 두기
