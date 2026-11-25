@@ -58,16 +58,62 @@ class FileManager:
         return sorted(os.path.splitext(f)[0]
                       for f in os.listdir(MAZE_DIR) if f.endswith(".json"))
 
+# ===== [AI 사용 끝] =====
+
+    # ===== [AI 사용] =====
+    # AI 종류   : Claude (Anthropic)
+    # 사용 목적 : README 5.4장 명세에 맞춘 실행 기록 csv 저장/읽기 (12주차 후반)
+    # 프롬프트  : "리드미를 읽고 12주차 후반 윤종하 코드를 컴퓨터공학과 1학년 대학생 수준으로 작성해줘"
+    # 사용자    : 윤종하
+    # 날짜      : 2026-11-25
+    # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
+    # =====================
     def append_record(self, result, maze):
         """SearchResult 하나를 records.csv에 한 줄 추가. 파일이 없으면 헤더부터 작성"""
-        # 12주차 후반에 구현
-        raise NotImplementedError
+        # data 폴더가 없으면 만든다
+        folder = os.path.dirname(RECORD_FILE)
+        os.makedirs(folder, exist_ok=True)
+
+        # 파일이 없거나 비어 있을 때만 헤더를 쓴다 (헤더가 여러 번 들어가지 않게)
+        need_header = False
+        if not os.path.exists(RECORD_FILE):
+            need_header = True
+        elif os.path.getsize(RECORD_FILE) == 0:
+            need_header = True
+
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [now, maze.name, maze.rows, maze.cols, result.algorithm,
+               result.visited_count, result.path_length,
+               round(result.elapsed_ms, 2)]
+
+        # "a" = 이어쓰기, newline="" = 빈 줄 방지, utf-8-sig = 엑셀 한글 깨짐 방지
+        with open(RECORD_FILE, "a", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            if need_header:
+                writer.writerow(RECORD_HEADER)
+            writer.writerow(row)
 
     def load_records(self):
         """records.csv를 읽어 dict의 list로 반환. 파일이 없으면 []"""
-        # 12주차 후반에 구현
-        raise NotImplementedError
-# ===== [AI 사용 끝] =====
+        if not os.path.exists(RECORD_FILE):
+            return []
+
+        records = []
+        with open(RECORD_FILE, "r", newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)   # 첫 줄(헤더)을 key로 쓰는 dict를 한 줄씩 준다
+            for row in reader:
+                # csv에서 읽은 값은 모두 글자(str)이므로 숫자 칸은 숫자로 바꾼다
+                try:
+                    row["rows"] = int(row["rows"])
+                    row["cols"] = int(row["cols"])
+                    row["visited_count"] = int(row["visited_count"])
+                    row["path_length"] = int(row["path_length"])
+                    row["elapsed_ms"] = float(row["elapsed_ms"])
+                except (ValueError, TypeError, KeyError):
+                    continue             # 엑셀 등에서 망가진 줄은 건너뛴다
+                records.append(row)
+        return records
+    # ===== [AI 사용 끝] =====
 
 
 if __name__ == "__main__":
@@ -90,4 +136,19 @@ if __name__ == "__main__":
     except FileNotFoundError as e:
         print("FileNotFoundError:", e)
 
+    # 실행 기록 테스트 (12주차 후반)
+    had_records = os.path.exists(RECORD_FILE)               # 원래 기록 파일이 있었는지
+
+    class Fake:
+        algorithm = "BFS"; visited_count = 10; path_length = 4; elapsed_ms = 0.123
+    fm.append_record(Fake(), m)
+    fm.append_record(Fake(), m)
+    records = fm.load_records()
+    print("마지막 기록:", records[-1])                       # elapsed_ms 0.12
+    with open(RECORD_FILE, encoding="utf-8-sig") as f:
+        header_count = f.read().count("datetime,maze_name")
+    print("헤더 개수:", header_count)                         # 1
+
     os.remove(os.path.join(MAZE_DIR, "test.json"))          # 테스트 파일 정리
+    if not had_records:
+        os.remove(RECORD_FILE)                              # 테스트로 만든 기록 파일 정리
