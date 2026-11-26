@@ -3,6 +3,7 @@
 # 설명: 미로 그리기, 마우스 편집, 탐색 애니메이션 (MazeCanvas)
 # 12주차 전반: draw_maze() 구현
 # 12주차 후반: 마우스 편집(set_edit_mode, 클릭/드래그), clear_search() 구현
+# 13주차: 탐색 애니메이션(animate, stop_animation) 구현
 
 import tkinter as tk
 from core.config import COLORS, CELL_SIZE
@@ -70,7 +71,6 @@ class MazeCanvas(tk.Canvas):
     # ===== [AI 사용] =====
     # AI 종류   : Claude (Anthropic)
     # 사용 목적 : README 5.3장 명세에 맞춘 마우스 편집, clear_search() 구현 (12주차 후반)
-   
     # 사용자    : 추민경
     # 날짜      : 2026-11-25
     # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
@@ -159,14 +159,63 @@ class MazeCanvas(tk.Canvas):
                 self.paint_cell((row, col))
     # ===== [AI 사용 끝] =====
 
+    # ===== [AI 사용] =====
+    # AI 종류   : Claude (Anthropic)
+    # 사용 목적 : README 5.3장 명세에 맞춘 animate(), stop_animation() 구현 (13주차)
+    # 사용자    : 윤종하 작성 → 추민경 전달
+    # 날짜      : 2026-11-26
+    # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
+    # =====================
+    def paint_search(self, pos, color):
+        """탐색 결과 색으로 한 칸을 칠한다. 출발점과 도착점은 원래 색을 그대로 둔다"""
+        if pos == self.maze.start or pos == self.maze.goal:
+            return
+        row, col = pos
+        self.itemconfig(self.rects[row][col], fill=color)
+
     def animate(self, result, delay_ms, on_done=None):
         """result.visit_order 순서대로 방문 색을 칠하고, 끝나면 result.path를 경로 색으로 칠한다.
         모두 끝나면 on_done()을 호출. time.sleep 대신 self.after 사용 (13주차)"""
-        pass
+        if self.maze is None:
+            return
+        self.stop_animation()            # 이전 애니메이션이 남아 있으면 먼저 멈춘다
+
+        # 다음 칸을 칠할 때 다시 쓸 값들을 저장해 둔다
+        self.anim_result = result
+        self.anim_delay = delay_ms
+        self.anim_on_done = on_done
+
+        self.visit_step(0)               # 0번째 방문 칸부터 시작
+
+    def visit_step(self, index):
+        """visit_order의 index번째 칸을 방문 색으로 칠하고, 다음 칸을 예약한다"""
+        visit_order = self.anim_result.visit_order
+        if index >= len(visit_order):    # 방문 칸을 다 칠했으면 경로 칠하기로 넘어간다
+            self.path_step(0)
+            return
+
+        self.paint_search(visit_order[index], COLORS["visited"])
+        # delay_ms 뒤에 visit_step(index + 1)을 실행하도록 예약 (창이 멈추지 않는다)
+        self.after_id = self.after(self.anim_delay, self.visit_step, index + 1)
+
+    def path_step(self, index):
+        """path의 index번째 칸을 경로 색으로 칠하고, 다음 칸을 예약한다"""
+        path = self.anim_result.path
+        if index >= len(path):           # 경로까지 다 칠했으면 끝
+            self.after_id = None
+            if self.anim_on_done is not None:
+                self.anim_on_done()
+            return
+
+        self.paint_search(path[index], COLORS["path"])
+        self.after_id = self.after(self.anim_delay, self.path_step, index + 1)
 
     def stop_animation(self):
         """진행 중인 애니메이션을 멈춘다 (after_cancel) (13주차)"""
-        pass
+        if self.after_id is not None:
+            self.after_cancel(self.after_id)   # 예약해 둔 다음 칸 칠하기를 취소
+            self.after_id = None
+    # ===== [AI 사용 끝] =====
 
 
 if __name__ == "__main__":
