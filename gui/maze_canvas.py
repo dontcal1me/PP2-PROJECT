@@ -190,25 +190,23 @@ class MazeCanvas(tk.Canvas):
     def visit_step(self, index):
         """visit_order의 index번째 칸을 방문 색으로 칠하고, 다음 칸을 예약한다"""
         visit_order = self.anim_result.visit_order
-        if index >= len(visit_order):    # 방문 칸을 다 칠했으면 경로 칠하기로 넘어간다
-            self.path_step(0)
+        if index >= len(visit_order):    # 방문 칸을 다 칠했으면 경로를 칠하고 끝낸다
+            self.show_path()
             return
 
         self.paint_search(visit_order[index], COLORS["visited"])
         # delay_ms 뒤에 visit_step(index + 1)을 실행하도록 예약 (창이 멈추지 않는다)
         self.after_id = self.after(self.anim_delay, self.visit_step, index + 1)
 
-    def path_step(self, index):
-        """path의 index번째 칸을 경로 색으로 칠하고, 다음 칸을 예약한다"""
-        path = self.anim_result.path
-        if index >= len(path):           # 경로까지 다 칠했으면 끝
-            self.after_id = None
-            if self.anim_on_done is not None:
-                self.anim_on_done()
-            return
+    def show_path(self):
+        """최종 경로를 한 번에 칠하고 on_done()을 호출한다.
+        (경로를 한 칸씩 천천히 칠하면 탐색이 한 번 더 도는 것처럼 보여서 한 번에 칠한다)"""
+        for pos in self.anim_result.path:
+            self.paint_search(pos, COLORS["path"])
 
-        self.paint_search(path[index], COLORS["path"])
-        self.after_id = self.after(self.anim_delay, self.path_step, index + 1)
+        self.after_id = None
+        if self.anim_on_done is not None:
+            self.anim_on_done()
 
     def stop_animation(self):
         """진행 중인 애니메이션을 멈춘다 (after_cancel) (13주차)"""
