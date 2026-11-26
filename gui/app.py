@@ -2,7 +2,8 @@
 # 담당: 윤종하
 # 설명: 메인 창(MazeApp). 모든 부품을 만들고 버튼과 기능을 연결한다
 # 12주차 후반: 기본 창과 연결 뼈대
-# 13주차: 기록 조회 창(RecordWindow) 연결, 탐색 결과 상태 메시지 정리 (그래프는 14주차)
+# 13주차: 기록 조회 창(RecordWindow) 연결, 탐색 결과 상태 메시지 정리
+# 14주차: [그래프] 버튼에 통계 그래프(StatsViewer) 연결
 
 import tkinter as tk
 from tkinter import messagebox, simpledialog
@@ -11,6 +12,7 @@ from core.config import CELL_SIZE
 from core.finder import BFSFinder, DFSFinder
 from core.file_manager import FileManager
 from core.generator import MazeGenerator
+from core.stats import StatsViewer
 from gui.maze_canvas import MazeCanvas
 from gui.control_panel import ControlPanel
 from gui.record_window import RecordWindow
@@ -24,6 +26,8 @@ from gui.record_window import RecordWindow
 # 날짜      : 2026-11-25
 # 13주차    : 2026-11-26 on_records()를 RecordWindow 연결로 변경, on_search()/on_compare() 상태 메시지 정리
 #             (프롬프트: "리드미를 읽고 13주차 윤종하 코딩을 대학생 컴퓨터공학과 1학년 학생의 수준으로 코딩해줘")
+# 14주차    : 2026-11-27 on_graph()를 StatsViewer 연결로 변경
+#             (프롬프트: "리드미를 읽고 14주차 윤종하 코드를 컴퓨터공학과 1학년 대학생 수준으로 작성해줘")
 # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
 # =====================
 class MazeApp(tk.Tk):
@@ -37,6 +41,7 @@ class MazeApp(tk.Tk):
         self.maze = None
         self.record_window = None        # 열려 있는 기록 조회 창 (없으면 None)
         self.file_manager = FileManager()
+        self.stats_viewer = StatsViewer()
         self.generator = MazeGenerator()
 
         # 탐색 애니메이션이 끝났을 때 쓰려고 결과를 저장해 두는 변수
@@ -229,8 +234,15 @@ class MazeApp(tk.Tk):
         self.panel.set_status(f"실행 기록 {len(records)}개를 표시합니다")
 
     def on_graph(self):
-        """[그래프] 14주차에 StatsViewer로 만든다"""
-        messagebox.showinfo("알림", "통계 그래프는 14주차에 추가됩니다.")
+        """[그래프] 실행 기록으로 BFS/DFS 평균 비교 그래프를 띄운다"""
+        try:
+            records = self.file_manager.load_records()
+        except OSError as e:             # 엑셀로 csv를 열어 둔 경우 등
+            messagebox.showerror("기록 읽기 실패", str(e))
+            return
+
+        self.panel.set_status("통계 그래프를 표시합니다")
+        self.stats_viewer.show_comparison(records)   # 기록이 없으면 안내창이 뜬다
 # ===== [AI 사용 끝] =====
 
 
