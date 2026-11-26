@@ -1,7 +1,8 @@
 # gui/app.py
 # 담당: 윤종하
 # 설명: 메인 창(MazeApp). 모든 부품을 만들고 버튼과 기능을 연결한다
-# 12주차 후반: 기본 창과 연결 뼈대 (기록 조회 창, 그래프는 13~14주차)
+# 12주차 후반: 기본 창과 연결 뼈대
+# 13주차: 기록 조회 창(RecordWindow) 연결, 탐색 결과 상태 메시지 정리 (그래프는 14주차)
 
 import tkinter as tk
 from tkinter import messagebox, simpledialog
@@ -11,6 +12,7 @@ from core.maze import Maze
 from core.finder import BFSFinder, DFSFinder
 from core.file_manager import FileManager
 from gui.maze_canvas import MazeCanvas
+from gui.record_window import RecordWindow
 
 # 팀원 파일이 아직 완성되지 않았어도 창이 뜨도록 한다.
 # 완성되어 main에 올라오면 자동으로 진짜 클래스를 쓴다.
@@ -31,6 +33,8 @@ except ImportError:
 # 프롬프트  : "리드미를 읽고 12주차 후반 윤종하 코드를 컴퓨터공학과 1학년 대학생 수준으로 작성해줘"
 # 사용자    : 윤종하
 # 날짜      : 2026-11-25
+# 13주차    : 2026-11-26 on_records()를 RecordWindow 연결로 변경, on_search()/on_compare() 상태 메시지 정리
+#             (프롬프트: "리드미를 읽고 13주차 윤종하 코딩을 대학생 컴퓨터공학과 1학년 학생의 수준으로 코딩해줘")
 # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
 # =====================
 def make_sample_maze(size=DEFAULT_SIZE):
@@ -123,6 +127,7 @@ class MazeApp(tk.Tk):
         self.title("경로 탐색 알고리즘 학습 시각화 프로그램")
 
         self.maze = None
+        self.record_window = None        # 열려 있는 기록 조회 창 (없으면 None)
         self.file_manager = FileManager()
         if MazeGenerator is not None:
             self.generator = MazeGenerator()
@@ -211,11 +216,15 @@ class MazeApp(tk.Tk):
         result = self.run_search(algorithm)
         self.panel.show_result(result)
         self.panel.set_status(f"{algorithm} 탐색 중...")
-        self.canvas.animate(result, self.panel.get_speed(),
-                            on_done=lambda: self.panel.set_status(f"{algorithm} 탐색 완료"))
 
-        if result.path_length == -1:
-            self.panel.set_status("도착점까지 가는 길이 없습니다")
+        def finish():
+            """애니메이션이 끝나면 결과에 맞는 상태 메시지를 보여준다"""
+            if result.path_length == -1:
+                self.panel.set_status(f"{algorithm}: 도착점까지 가는 길이 없습니다")
+            else:
+                self.panel.set_status(f"{algorithm} 탐색 완료 (경로 {result.path_length}칸)")
+
+        self.canvas.animate(result, self.panel.get_speed(), on_done=finish)
 
     def on_compare(self):
         """[둘 다 비교] BFS와 DFS를 모두 돌리고 결과를 나란히 보여준다"""
@@ -237,7 +246,11 @@ class MazeApp(tk.Tk):
         def show_dfs():
             """BFS 애니메이션이 끝나면 화면을 지우고 DFS 애니메이션을 시작"""
             self.canvas.clear_search()
-            self.canvas.animate(dfs_result, speed)
+            self.panel.set_status("DFS 애니메이션 중...")
+            self.canvas.animate(dfs_result, speed,
+                                on_done=lambda: self.panel.set_status("BFS와 DFS 비교 완료"))
+
+        self.panel.set_status("BFS 애니메이션 중...")
 
         self.canvas.animate(bfs_result, speed, on_done=show_dfs)
 
@@ -296,9 +309,18 @@ class MazeApp(tk.Tk):
         self.panel.set_status(f"불러옴: {name}")
 
     def on_records(self):
-        """[기록 보기] 기록 조회 창은 13주차에 RecordWindow로 만든다. 지금은 개수만 알려준다"""
-        records = self.file_manager.load_records()
-        messagebox.showinfo("실행 기록", f"저장된 기록: {len(records)}개\n(기록 조회 창은 13주차 예정)")
+        """[기록 보기] records.csv를 읽어 기록 조회 창(RecordWindow)을 연다"""
+        try:
+            records = self.file_manager.load_records()
+        except OSError as e:             # 엑셀로 csv를 열어 둔 경우 등
+            messagebox.showerror("기록 읽기 실패", str(e))
+            return
+
+        # 이미 열린 창이 있으면 닫고 최신 기록으로 새로 연다 (창이 여러 개 쌓이지 않게)
+        if self.record_window is not None and self.record_window.winfo_exists():
+            self.record_window.destroy()
+        self.record_window = RecordWindow(self, records)
+        self.panel.set_status(f"실행 기록 {len(records)}개를 표시합니다")
 
     def on_graph(self):
         """[그래프] 14주차에 StatsViewer로 만든다"""
