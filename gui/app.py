@@ -7,24 +7,13 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
-from core.config import CELL_SIZE, DEFAULT_SIZE, DEFAULT_SPEED_MS
-from core.maze import Maze
+from core.config import CELL_SIZE
 from core.finder import BFSFinder, DFSFinder
 from core.file_manager import FileManager
+from core.generator import MazeGenerator
 from gui.maze_canvas import MazeCanvas
+from gui.control_panel import ControlPanel
 from gui.record_window import RecordWindow
-
-# 팀원 파일이 아직 완성되지 않았어도 창이 뜨도록 한다.
-# 완성되어 main에 올라오면 자동으로 진짜 클래스를 쓴다.
-try:
-    from core.generator import MazeGenerator          # 이승식
-except ImportError:
-    MazeGenerator = None
-
-try:
-    from gui.control_panel import ControlPanel   # 추민경
-except ImportError:
-    ControlPanel = None
 
 
 # ===== [AI 사용] =====
@@ -37,87 +26,6 @@ except ImportError:
 #             (프롬프트: "리드미를 읽고 13주차 윤종하 코딩을 대학생 컴퓨터공학과 1학년 학생의 수준으로 코딩해줘")
 # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
 # =====================
-def make_sample_maze(size=DEFAULT_SIZE):
-    """generator.py가 완성되기 전에 테스트용으로 쓰는 지그재그 미로"""
-    maze = Maze(size, size, name="sample")
-    # 테두리를 뺀 안쪽을 모두 길로 만든다
-    for row in range(1, size - 1):
-        for col in range(1, size - 1):
-            maze.grid[row][col] = Maze.ROAD
-    # 4칸마다 세로 벽을 세우고, 아래/위를 번갈아 한 칸씩 뚫는다
-    count = 0
-    for col in range(2, size - 2, 4):
-        for row in range(1, size - 1):
-            maze.grid[row][col] = Maze.WALL
-        if count % 2 == 0:
-            maze.grid[size - 2][col] = Maze.ROAD   # 아래쪽 구멍
-        else:
-            maze.grid[1][col] = Maze.ROAD          # 위쪽 구멍
-        count += 1
-    return maze
-
-
-class TempPanel(tk.Frame):
-    """ControlPanel(추민경)이 완성되기 전까지 쓰는 임시 패널. 같은 이름의 메서드만 흉내 낸다"""
-
-    def __init__(self, master, callbacks):
-        """버튼 몇 개와 결과/상태 글자를 만든다"""
-        super().__init__(master)
-        self.callbacks = callbacks
-
-        tk.Label(self, text="[임시 패널]").pack(pady=5)
-        tk.Button(self, text="미로 생성", width=14,
-                  command=callbacks["generate"]).pack(pady=2)
-        tk.Button(self, text="BFS 탐색", width=14,
-                  command=lambda: callbacks["search"]("BFS")).pack(pady=2)
-        tk.Button(self, text="DFS 탐색", width=14,
-                  command=lambda: callbacks["search"]("DFS")).pack(pady=2)
-        tk.Button(self, text="둘 다 비교", width=14,
-                  command=callbacks["compare"]).pack(pady=2)
-        tk.Button(self, text="미로 저장", width=14,
-                  command=callbacks["save"]).pack(pady=2)
-        tk.Button(self, text="미로 불러오기", width=14,
-                  command=callbacks["load"]).pack(pady=2)
-        tk.Button(self, text="기록 보기", width=14,
-                  command=callbacks["records"]).pack(pady=2)
-
-        self.result_label = tk.Label(self, text="", justify="left")
-        self.result_label.pack(pady=10)
-        self.status_label = tk.Label(self, text="상태: 준비")
-        self.status_label.pack(side="bottom", pady=5)
-
-    def get_size(self):
-        """임시 패널은 입력칸이 없으므로 기본 크기를 돌려준다"""
-        return (DEFAULT_SIZE, DEFAULT_SIZE)
-
-    def get_seed(self):
-        """임시 패널은 시드 입력이 없으므로 None"""
-        return None
-
-    def get_speed(self):
-        """기본 애니메이션 간격"""
-        return DEFAULT_SPEED_MS
-
-    def show_result(self, result):
-        """SearchResult 하나를 글자로 표시"""
-        text = (f"{result.algorithm}\n"
-                f"방문: {result.visited_count}\n"
-                f"경로: {result.path_length}\n"
-                f"시간: {result.elapsed_ms:.2f} ms")
-        self.result_label.config(text=text)
-
-    def show_compare(self, bfs_result, dfs_result):
-        """두 결과를 나란히 표시"""
-        text = (f"       BFS   DFS\n"
-                f"방문  {bfs_result.visited_count:4}  {dfs_result.visited_count:4}\n"
-                f"경로  {bfs_result.path_length:4}  {dfs_result.path_length:4}")
-        self.result_label.config(text=text)
-
-    def set_status(self, text):
-        """상태 글자 변경"""
-        self.status_label.config(text="상태: " + text)
-
-
 class MazeApp(tk.Tk):
     """메인 창. 미로, 생성기, 파일 관리자, 캔버스, 패널을 만들고 서로 연결한다"""
 
@@ -129,10 +37,12 @@ class MazeApp(tk.Tk):
         self.maze = None
         self.record_window = None        # 열려 있는 기록 조회 창 (없으면 None)
         self.file_manager = FileManager()
-        if MazeGenerator is not None:
-            self.generator = MazeGenerator()
-        else:
-            self.generator = None
+        self.generator = MazeGenerator()
+
+        # 탐색 애니메이션이 끝났을 때 쓰려고 결과를 저장해 두는 변수
+        self.last_result = None          # [BFS]/[DFS] 탐색 결과
+        self.compare_dfs_result = None   # [둘 다 비교]에서 BFS 다음에 보여줄 DFS 결과
+        self.compare_speed = 0           # [둘 다 비교] 애니메이션 속도
 
         # 탐색 알고리즘은 이름으로 찾아 쓸 수 있게 dict에 넣어 둔다
         self.finders = {"BFS": BFSFinder(), "DFS": DFSFinder()}
@@ -153,10 +63,7 @@ class MazeApp(tk.Tk):
             "records": self.on_records,
             "graph": self.on_graph,
         }
-        if ControlPanel is not None:
-            self.panel = ControlPanel(self, callbacks=callbacks)
-        else:
-            self.panel = TempPanel(self, callbacks=callbacks)
+        self.panel = ControlPanel(self, callbacks=callbacks)
         self.panel.pack(side="right", fill="y", padx=10, pady=10)
 
         # 처음 켰을 때 미로 하나를 보여준다
@@ -172,11 +79,6 @@ class MazeApp(tk.Tk):
 
     def on_generate(self):
         """[미로 생성] 패널의 크기와 시드로 새 미로를 만든다"""
-        if self.generator is None:
-            self.show_maze(make_sample_maze())
-            self.panel.set_status("generator.py 완성 전이라 예시 미로를 표시합니다")
-            return
-
         size = self.panel.get_size()
         if size is None:                 # 잘못된 크기 (패널이 이미 알림)
             return
@@ -214,17 +116,18 @@ class MazeApp(tk.Tk):
         self.canvas.clear_search()
 
         result = self.run_search(algorithm)
+        self.last_result = result        # 애니메이션이 끝난 뒤 on_search_done()에서 쓴다
         self.panel.show_result(result)
         self.panel.set_status(f"{algorithm} 탐색 중...")
+        self.canvas.animate(result, self.panel.get_speed(), on_done=self.on_search_done)
 
-        def finish():
-            """애니메이션이 끝나면 결과에 맞는 상태 메시지를 보여준다"""
-            if result.path_length == -1:
-                self.panel.set_status(f"{algorithm}: 도착점까지 가는 길이 없습니다")
-            else:
-                self.panel.set_status(f"{algorithm} 탐색 완료 (경로 {result.path_length}칸)")
-
-        self.canvas.animate(result, self.panel.get_speed(), on_done=finish)
+    def on_search_done(self):
+        """탐색 애니메이션이 끝나면 캔버스가 불러 준다. 결과에 맞는 상태 메시지를 보여준다"""
+        result = self.last_result
+        if result.path_length == -1:
+            self.panel.set_status(f"{result.algorithm}: 도착점까지 가는 길이 없습니다")
+        else:
+            self.panel.set_status(f"{result.algorithm} 탐색 완료 (경로 {result.path_length}칸)")
 
     def on_compare(self):
         """[둘 다 비교] BFS와 DFS를 모두 돌리고 결과를 나란히 보여준다"""
@@ -240,25 +143,28 @@ class MazeApp(tk.Tk):
         self.panel.show_compare(bfs_result, dfs_result)
         self.panel.set_status("BFS와 DFS를 비교했습니다")
 
-        # 화면에는 BFS를 먼저 보여주고, 끝나면 DFS를 이어서 보여준다
-        speed = self.panel.get_speed()
-
-        def show_dfs():
-            """BFS 애니메이션이 끝나면 화면을 지우고 DFS 애니메이션을 시작"""
-            self.canvas.clear_search()
-            self.panel.set_status("DFS 애니메이션 중...")
-            self.canvas.animate(dfs_result, speed,
-                                on_done=lambda: self.panel.set_status("BFS와 DFS 비교 완료"))
-
+        # 화면에는 BFS를 먼저 보여주고, 끝나면 on_compare_bfs_done()에서 DFS를 이어서 보여준다
+        self.compare_dfs_result = dfs_result
+        self.compare_speed = self.panel.get_speed()
         self.panel.set_status("BFS 애니메이션 중...")
+        self.canvas.animate(bfs_result, self.compare_speed, on_done=self.on_compare_bfs_done)
 
-        self.canvas.animate(bfs_result, speed, on_done=show_dfs)
+    def on_compare_bfs_done(self):
+        """[둘 다 비교] BFS 애니메이션이 끝나면 화면을 지우고 DFS 애니메이션을 시작"""
+        self.canvas.clear_search()
+        self.panel.set_status("DFS 애니메이션 중...")
+        self.canvas.animate(self.compare_dfs_result, self.compare_speed,
+                            on_done=self.on_compare_done)
+
+    def on_compare_done(self):
+        """[둘 다 비교] DFS 애니메이션까지 끝나면 캔버스가 불러 준다"""
+        self.panel.set_status("BFS와 DFS 비교 완료")
 
     def on_edit_mode(self, mode):
         """편집 모드 라디오 버튼: "wall", "start", "goal" """
         self.canvas.set_edit_mode(mode)
         names = {"wall": "벽", "start": "출발점", "goal": "도착점"}
-        self.panel.set_status(f"편집 모드: {names.get(mode, mode)}")
+        self.panel.set_status(f"편집 모드: {names[mode]}")
 
     def on_maze_changed(self):
         """캔버스에서 마우스로 미로를 고쳤을 때 캔버스가 불러 준다"""
