@@ -3,9 +3,10 @@
 # 설명: 미로 그리기, 마우스 편집, 탐색 애니메이션 (MazeCanvas)
 # 12주차 전반: draw_maze() 구현
 # 12주차 후반: 마우스 편집(set_edit_mode, 클릭/드래그), clear_search() 구현
+# 13주차: 탐색 애니메이션(animate, stop_animation) 구현
 
 import tkinter as tk
-from config import COLORS, CELL_SIZE
+from core.config import COLORS, CELL_SIZE
 
 
 # ===== [AI 사용] =====
@@ -156,12 +157,12 @@ class MazeCanvas(tk.Canvas):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
                 self.paint_cell((row, col))
+    # ===== [AI 사용 끝] =====
 
-    # # ===== [AI 사용 끝] =====
-    # 13주차: 탐색 애니메이션(animate, stop_animation) 구현
-     # ===== [AI 사용] =====
+    # ===== [AI 사용] =====
     # AI 종류   : Claude (Anthropic)
     # 사용 목적 : README 5.3장 명세에 맞춘 animate(), stop_animation() 구현 (13주차)
+    # 사용자    : 윤종하 작성 → 추민경 전달
     # 날짜      : 2026-11-26
     # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
     # =====================
@@ -219,7 +220,7 @@ class MazeCanvas(tk.Canvas):
 
 if __name__ == "__main__":
     # 프로젝트 폴더에서 실행: python -m gui.maze_canvas
-    from maze import Maze
+    from core.maze import Maze
     root = tk.Tk()
     root.title("MazeCanvas 테스트")
     grid = [[1, 1, 1, 1, 1, 1, 1],
@@ -239,5 +240,3 @@ if __name__ == "__main__":
     for mode in ("wall", "start", "goal"):
         tk.Button(root, text=mode, command=lambda md=mode: c.set_edit_mode(md)).pack(side="left")
     root.mainloop()
-
-
