@@ -162,7 +162,6 @@ class MazeCanvas(tk.Canvas):
     # ===== [AI 사용] =====
     # AI 종류   : Claude (Anthropic)
     # 사용 목적 : README 5.3장 명세에 맞춘 animate(), stop_animation() 구현 (13주차)
-    # 사용자    : 윤종하 작성 → 추민경 전달
     # 날짜      : 2026-11-26
     # 수정 내용 : (직접 이해하고 수정한 부분이 있으면 여기에 적기)
     # =====================
