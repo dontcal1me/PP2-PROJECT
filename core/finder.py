@@ -119,7 +119,7 @@ class DFSFinder(PathFinder):
 
 
 if __name__ == "__main__":
-    from maze import Maze
+    from core.maze import Maze
 
     # 두 길이 있는 미로: 위쪽 길은 짧고, 아래쪽 길은 멀리 돌아간다
     grid = [[1, 1, 1, 1, 1, 1, 1],

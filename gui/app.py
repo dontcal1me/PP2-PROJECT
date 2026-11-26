@@ -6,16 +6,16 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
-from config import CELL_SIZE, DEFAULT_SIZE, DEFAULT_SPEED_MS
-from maze import Maze
-from finder import BFSFinder, DFSFinder
-from file_manager import FileManager
+from core.config import CELL_SIZE, DEFAULT_SIZE, DEFAULT_SPEED_MS
+from core.maze import Maze
+from core.finder import BFSFinder, DFSFinder
+from core.file_manager import FileManager
 from gui.maze_canvas import MazeCanvas
 
 # 팀원 파일이 아직 완성되지 않았어도 창이 뜨도록 한다.
 # 완성되어 main에 올라오면 자동으로 진짜 클래스를 쓴다.
 try:
-    from generator import MazeGenerator          # 이승식
+    from core.generator import MazeGenerator          # 이승식
 except ImportError:
     MazeGenerator = None
 

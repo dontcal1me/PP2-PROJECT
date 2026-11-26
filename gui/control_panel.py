@@ -5,7 +5,7 @@
 
 import tkinter as tk
 from tkinter import messagebox
-from config import DEFAULT_SIZE, MIN_SIZE, MAX_SIZE, DEFAULT_SPEED_MS
+from core.config import DEFAULT_SIZE, MIN_SIZE, MAX_SIZE, DEFAULT_SPEED_MS
 
 
 # ===== [AI 사용] =====

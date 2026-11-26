@@ -7,8 +7,8 @@ import json
 import csv
 from datetime import datetime
 
-from maze import Maze
-from config import MAZE_DIR, RECORD_FILE
+from core.maze import Maze
+from core.config import MAZE_DIR, RECORD_FILE
 
 RECORD_HEADER = ["datetime", "maze_name", "rows", "cols", "algorithm",
                  "visited_count", "path_length", "elapsed_ms"]

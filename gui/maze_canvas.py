@@ -5,7 +5,7 @@
 # 12주차 후반: 마우스 편집(set_edit_mode, 클릭/드래그), clear_search() 구현
 
 import tkinter as tk
-from config import COLORS, CELL_SIZE
+from core.config import COLORS, CELL_SIZE
 
 
 # ===== [AI 사용] =====
@@ -171,7 +171,7 @@ class MazeCanvas(tk.Canvas):
 
 if __name__ == "__main__":
     # 프로젝트 폴더에서 실행: python -m gui.maze_canvas
-    from maze import Maze
+    from core.maze import Maze
     root = tk.Tk()
     root.title("MazeCanvas 테스트")
     grid = [[1, 1, 1, 1, 1, 1, 1],
