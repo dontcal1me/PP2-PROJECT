@@ -164,7 +164,7 @@ class MazeApp(tk.Tk):
         """편집 모드 라디오 버튼: "wall", "start", "goal" """
         self.canvas.set_edit_mode(mode)
         names = {"wall": "벽", "start": "출발점", "goal": "도착점"}
-        self.panel.set_status(f"편집 모드: {names[mode]}")
+        self.panel.set_status(f"편집 모드: {names.get(mode, mode)}")
 
     def on_maze_changed(self):
         """캔버스에서 마우스로 미로를 고쳤을 때 캔버스가 불러 준다"""

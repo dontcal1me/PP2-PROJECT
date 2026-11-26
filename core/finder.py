@@ -21,15 +21,8 @@ class SearchResult:
         self.visit_order = visit_order    # 방문한 순서대로 좌표 list
         self.path = path                  # 출발~도착 좌표 list, 못 찾으면 []
         self.elapsed_ms = elapsed_ms      # 탐색에 걸린 시간 (밀리초, float)
-
-        # 방문한 칸 수
-        self.visited_count = len(visit_order)
-
-        # 이동 횟수 = 칸 수 - 1. 경로가 없으면 -1
-        if len(path) > 0:
-            self.path_length = len(path) - 1
-        else:
-            self.path_length = -1
+        self.visited_count = len(visit_order)                # 방문한 칸 수
+        self.path_length = len(path) - 1 if path else -1     # 이동 횟수. 경로가 없으면 -1
 
 
 class PathFinder:
@@ -59,15 +52,14 @@ class BFSFinder(PathFinder):
 
     def find(self, maze):
         """start에서 goal까지 BFS로 탐색한다"""
-        start = maze.start
-        goal = maze.goal
+        start, goal = maze.start, maze.goal
         visit_order = []
         parent = {start: None}       # 큐에 넣을 때 기록하므로 중복 방문이 없다
         queue = deque([start])
 
         t0 = time.perf_counter()
         found = False
-        while len(queue) > 0:
+        while queue:
             current = queue.popleft()
             visit_order.append(current)
             if current == goal:
@@ -79,10 +71,7 @@ class BFSFinder(PathFinder):
                     queue.append(nxt)
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
-        if found:
-            path = self.build_path(parent, goal)
-        else:
-            path = []
+        path = self.build_path(parent, goal) if found else []
         return SearchResult(self.name, visit_order, path, elapsed_ms)
 
 
@@ -92,8 +81,7 @@ class DFSFinder(PathFinder):
 
     def find(self, maze):
         """start에서 goal까지 DFS로 탐색한다"""
-        start = maze.start
-        goal = maze.goal
+        start, goal = maze.start, maze.goal
         visit_order = []
         parent = {}                  # 꺼내서 방문할 때 기록한다
         visited = set()
@@ -101,7 +89,7 @@ class DFSFinder(PathFinder):
 
         t0 = time.perf_counter()
         found = False
-        while len(stack) > 0:
+        while stack:
             current, prev = stack.pop()
             if current in visited:
                 continue
@@ -117,10 +105,7 @@ class DFSFinder(PathFinder):
                     stack.append((nxt, current))
         elapsed_ms = (time.perf_counter() - t0) * 1000
 
-        if found:
-            path = self.build_path(parent, goal)
-        else:
-            path = []
+        path = self.build_path(parent, goal) if found else []
         return SearchResult(self.name, visit_order, path, elapsed_ms)
 # ===== [AI 사용 끝] =====
 
@@ -147,10 +132,7 @@ if __name__ == "__main__":
     print("BFS <= DFS:", bfs_len <= dfs_len)                     # True
 
     # 경로가 없는 미로: 출발점과 도착점 사이를 벽으로 막는다
-    blocked_grid = []
-    for row in grid:
-        blocked_grid.append(row[:])           # 한 줄씩 복사 (원래 grid는 그대로 둔다)
-    blocked = Maze(5, 7, grid=blocked_grid, start=(1, 1), goal=(3, 5))
+    blocked = Maze(5, 7, grid=[row[:] for row in grid], start=(1, 1), goal=(3, 5))
     for pos in [(1, 3), (3, 3)]:
         blocked.grid[pos[0]][pos[1]] = Maze.WALL
     for finder in (BFSFinder(), DFSFinder()):

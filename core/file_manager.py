@@ -29,11 +29,9 @@ class FileManager:
         os.makedirs(MAZE_DIR, exist_ok=True)
 
     def _maze_path(self, name):
-        """미로 이름으로 json 파일 경로를 만든다. 폴더 구분자가 섞인 이름은 거부"""
-        if name == "" or name == "." or name == "..":
+        """미로 이름으로 json 파일 경로를 만든다. 경로 구분자가 섞인 이름은 거부"""
+        if not name or name != os.path.basename(name) or name in (".", ".."):
             raise ValueError(f"잘못된 미로 이름: '{name}'")
-        if "/" in name or "\\" in name or ":" in name:
-            raise ValueError(f"미로 이름에 / \\ : 는 쓸 수 없습니다: '{name}'")
         return os.path.join(MAZE_DIR, name + ".json")
 
     def save_maze(self, maze, name):
@@ -57,12 +55,8 @@ class FileManager:
         """저장된 미로 이름(확장자 제외) list. 이름순 정렬"""
         if not os.path.isdir(MAZE_DIR):
             return []
-        names = []
-        for filename in os.listdir(MAZE_DIR):
-            if filename.endswith(".json"):
-                names.append(filename[:-5])     # 뒤의 ".json" 5글자를 뗀다
-        names.sort()
-        return names
+        return sorted(os.path.splitext(f)[0]
+                      for f in os.listdir(MAZE_DIR) if f.endswith(".json"))
 
 # ===== [AI 사용 끝] =====
 
@@ -125,8 +119,8 @@ class FileManager:
 if __name__ == "__main__":
     fm = FileManager()
     m = Maze(5, 5, name="test", seed=7)
-    for pos in [(1, 1), (1, 2), (1, 3), (2, 3), (3, 3)]:
-        m.grid[pos[0]][pos[1]] = Maze.ROAD
+    m.grid[1][1] = m.grid[1][2] = m.grid[1][3] = Maze.ROAD
+    m.grid[2][3] = m.grid[3][3] = Maze.ROAD
     m.goal = (3, 3)
 
     print(fm.save_maze(m, "test"))
@@ -146,10 +140,7 @@ if __name__ == "__main__":
     had_records = os.path.exists(RECORD_FILE)               # 원래 기록 파일이 있었는지
 
     class Fake:
-        algorithm = "BFS"
-        visited_count = 10
-        path_length = 4
-        elapsed_ms = 0.123
+        algorithm = "BFS"; visited_count = 10; path_length = 4; elapsed_ms = 0.123
     fm.append_record(Fake(), m)
     fm.append_record(Fake(), m)
     records = fm.load_records()

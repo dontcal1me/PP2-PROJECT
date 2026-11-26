@@ -24,18 +24,9 @@ class Maze:
         """rows x cols 크기의 미로를 만든다. grid가 없으면 전부 벽으로 채운다"""
         self.rows = rows
         self.cols = cols
-        if grid is not None:
-            self.grid = grid
-        else:
-            # rows줄 x cols칸을 모두 벽(1)으로 채운다
-            self.grid = []
-            for r in range(rows):
-                self.grid.append([Maze.WALL] * cols)
+        self.grid = grid if grid is not None else [[Maze.WALL] * cols for _ in range(rows)]
         self.start = start
-        if goal is not None:
-            self.goal = goal
-        else:
-            self.goal = (rows - 2, cols - 2)   # 기본 도착점: 오른쪽 아래 안쪽 칸
+        self.goal = goal if goal is not None else (rows - 2, cols - 2)
         self.name = name
         self.seed = seed
         self.created_at = None   # 불러온 미로면 저장 시각, 새 미로면 None
@@ -104,11 +95,6 @@ class Maze:
             created_at = self.created_at        # 불러온 미로면 원래 저장 시각 유지
         else:
             created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        # 원본이 바뀌지 않도록 grid를 한 줄씩 복사한다
-        grid_copy = []
-        for row in self.grid:
-            grid_copy.append(row[:])
         return {
             "name": self.name,
             "rows": self.rows,
@@ -116,20 +102,17 @@ class Maze:
             "seed": self.seed,
             "start": list(self.start),
             "goal": list(self.goal),
-            "grid": grid_copy,
+            "grid": [row[:] for row in self.grid],   # 원본이 바뀌지 않도록 복사
             "created_at": created_at,
         }
 
     @classmethod
     def from_dict(cls, data):
         """to_dict()로 만든 dict에서 Maze 객체를 만든다. start, goal은 tuple로 바꾼다"""
-        grid = []
-        for row in data["grid"]:
-            grid.append(list(row))
         maze = cls(
             rows=data["rows"],
             cols=data["cols"],
-            grid=grid,
+            grid=[list(row) for row in data["grid"]],
             start=tuple(data["start"]),
             goal=tuple(data["goal"]),
             name=data.get("name", "untitled"),
